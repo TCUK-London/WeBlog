@@ -255,8 +255,12 @@ namespace Sitecore.Modules.WeBlog.Managers
                         using (var context = ContentSearchManager.GetIndex(indexName).CreateSearchContext())
                         {
                             var builder = PredicateBuilder.True<CommentResultItem>();
-                            builder = builder.And(i => i.Path.Contains(item.Paths.FullPath));
+
+                            builder = builder.And(i => i.DatabaseName == Context.Database.Name);
+                            builder = builder.And(i => i.Language == Context.Language.Name);
+                            builder = builder.And(i => i.Paths.Contains(item.ID));
                             builder = builder.And(i => i.TemplateId == Settings.CommentTemplateID);
+
                             var indexresults = context.GetQueryable<CommentResultItem>().Where(builder);
                             if (indexresults.Any())
                             {

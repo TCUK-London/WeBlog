@@ -216,7 +216,7 @@ namespace Sitecore.Modules.WeBlog.Managers
         /// <param name="tag">A tag the entry must contain</param>
         /// <param name="category">A category the entry must contain</param>
         /// <returns></returns>
-        public EntryItem[] GetBlogEntries(Item blog, int maxNumber, string tag, string category, string datePrefix = null)
+        public EntryItem[] GetBlogEntries(Item blog, int maxNumber, string tag, ID categoryId, string datePrefix = null)
         {
             if (blog == null || maxNumber <= 0)
             {
@@ -247,6 +247,11 @@ namespace Sitecore.Modules.WeBlog.Managers
                 using (var context = ContentSearchManager.GetIndex(indexName).CreateSearchContext())
                 {
                     var builder = PredicateBuilder.True<EntryResultItem>();
+
+                    builder = builder.And(i => i.DatabaseName == Context.Database.Name);
+                    builder = builder.And(i => i.Language == Context.Language.Name);
+                    builder = builder.And(i => i.Paths.Contains(customBlogItem.ID));
+
                     var id = Settings.EntryTemplateID;
                     builder = builder.And(i => i.TemplateId==id);
                     // Tag
@@ -255,9 +260,9 @@ namespace Sitecore.Modules.WeBlog.Managers
                         builder = builder.And(PredicateController.BlogTags(tag));
                     }
                     // Categories
-                    if (!string.IsNullOrEmpty(category))
+                    if (!ID.IsNullOrEmpty(categoryId))
                     {
-                        builder = builder.And(PredicateController.BlogCategory(category));
+                        builder = builder.And(PredicateController.BlogCategory(categoryId));
                     }
                     var indexresults = context.GetQueryable<EntryResultItem>().Where(builder);
                     if (indexresults.Any())
@@ -368,7 +373,7 @@ namespace Sitecore.Modules.WeBlog.Managers
             var categoryItem = Sitecore.Context.Database.GetItem(categoryId);
 
             if (blogItem != null && categoryItem != null)
-                return GetBlogEntries(blogItem, int.MaxValue, string.Empty, categoryItem.Name);
+                return GetBlogEntries(blogItem, int.MaxValue, string.Empty, categoryItem.ID);
             else
                 return new EntryItem[0];
         }
@@ -588,9 +593,9 @@ namespace Sitecore.Modules.WeBlog.Managers
             return predicate;
         }
 
-        internal static Expression<Func<EntryResultItem, bool>> BlogCategory(string category)
+        internal static Expression<Func<EntryResultItem, bool>> BlogCategory(ID categoryId)
         {
-            Item categoryItem = Sitecore.Context.Item;
+            Item categoryItem = Sitecore.Context.Database.GetItem(categoryId);
             if (categoryItem != null && categoryItem.TemplateIsOrBasedOn(Settings.CategoryTemplateID))
             {
                 string normalizedID = Sitecore.ContentSearch.Utilities.IdHelper.NormalizeGuid(categoryItem.ID);

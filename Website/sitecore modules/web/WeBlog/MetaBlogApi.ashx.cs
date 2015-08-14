@@ -237,7 +237,7 @@ namespace Sitecore.Modules.WeBlog
             var blog = ContentHelper.GetContentDatabase().GetItem(blogid);
             if (blog != null)
             {
-                var entryList = ManagerFactory.EntryManagerInstance.GetBlogEntries(blog, numberOfPosts, string.Empty, string.Empty);
+                var entryList = ManagerFactory.EntryManagerInstance.GetBlogEntries(blog, numberOfPosts, null, ID.Null);
 
                 XmlRpcStruct[] posts = new XmlRpcStruct[entryList.Length];
 
