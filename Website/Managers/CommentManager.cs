@@ -265,8 +265,16 @@ namespace Sitecore.Modules.WeBlog.Managers
                             if (indexresults.Any())
                             {
                                 result = indexresults.Select(i => new CommentItem(i.GetItem())).ToList();
-                                result = result.Distinct().OrderBy(comment => comment.InnerItem.Statistics.Created).Take(maximumCount).ToList();
+                                if (sort && reverse)
+                                {
+                                    result = result.OrderByDescending(x => x.Created).ToList();
+                                }
+                                else if (sort)
+                                {
+                                    result = result.OrderBy(x => x.Created).ToList();
+                                }
 
+                                result = result.Take(maximumCount).ToList();
                             }
                         }
                     }
